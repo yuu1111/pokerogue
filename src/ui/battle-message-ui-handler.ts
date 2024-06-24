@@ -34,6 +34,7 @@ export default class BattleMessageUiHandler extends MessageUiHandler {
     this.bg = this.scene.add.sprite(0, 0, "bg", this.scene.windowType);
     this.bg.setName("sprite-battle-msg-bg");
     this.bg.setOrigin(0, 1);
+    this.bg.setVisible(false);
     ui.add(this.bg);
 
     this.commandWindow = addWindow(this.scene, 202, 0, 118, 48);

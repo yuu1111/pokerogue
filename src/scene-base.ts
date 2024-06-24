@@ -1,4 +1,5 @@
 export const legacyCompatibleImages: string[] = [];
+export { GameObjects } from "phaser";
 
 export class SceneBase extends Phaser.Scene {
   /**

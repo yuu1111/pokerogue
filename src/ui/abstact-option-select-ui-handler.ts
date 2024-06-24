@@ -4,7 +4,6 @@ import { Mode } from "./ui";
 import UiHandler from "./ui-handler";
 import { addWindow } from "./ui-theme";
 import * as Utils from "../utils";
-import { argbFromRgba } from "@material/material-color-utilities";
 import {Button} from "#enums/buttons";
 
 export interface OptionSelectConfig {
@@ -15,6 +14,8 @@ export interface OptionSelectConfig {
   delay?: integer;
   noCancel?: boolean;
   supportHover?: boolean;
+  noBg?: boolean;
+  textStyle?: TextStyle;
 }
 
 export interface OptionSelectItem {
@@ -33,7 +34,7 @@ const scrollDownLabel = "↓";
 export default abstract class AbstractOptionSelectUiHandler extends UiHandler {
   protected optionSelectContainer: Phaser.GameObjects.Container;
   protected optionSelectBg: Phaser.GameObjects.NineSlice;
-  protected optionSelectText: Phaser.GameObjects.Text;
+  protected optionSelectText: Phaser.GameObjects.Text[];
   protected optionSelectIcons: Phaser.GameObjects.Sprite[];
 
   protected config: OptionSelectConfig;
@@ -65,6 +66,7 @@ export default abstract class AbstractOptionSelectUiHandler extends UiHandler {
     this.optionSelectBg = addWindow(this.scene, 0, 0, this.getWindowWidth(), this.getWindowHeight());
     this.optionSelectBg.setName("option-select-bg");
     this.optionSelectBg.setOrigin(1, 1);
+    this.optionSelectBg.ignoreDestroy = true;
     this.optionSelectContainer.add(this.optionSelectBg);
 
     this.optionSelectIcons = [];
@@ -76,51 +78,57 @@ export default abstract class AbstractOptionSelectUiHandler extends UiHandler {
     const options = this.config?.options || [];
 
     if (this.optionSelectText) {
-      this.optionSelectText.destroy();
+      Phaser.Actions.Call(this.optionSelectText, (text) => text.destroy(), this);
     }
-    if (this.optionSelectIcons?.length) {
-      this.optionSelectIcons.map(i => i.destroy());
-      this.optionSelectIcons.splice(0, this.optionSelectIcons.length);
-    }
+    const optionText = this.config?.options.length > this.config?.maxOptions ? this.getOptionsWithScroll() : options;
+    this.optionSelectText = [];
+    this.optionSelectText = optionText.map(o => {
+      const ret = addTextObject(this.scene, 0, 0,
+        o.item ? `    ${o.label}` : o.label,
+        ( this.config?.textStyle ?? TextStyle.WINDOW),
+        { maxLines: options.length, lineSpacing: 12 }
+      );
+      ret.setName(`text-${o.label}`);
+      return ret;
+    });
 
-    this.optionSelectText = addTextObject(this.scene, 0, 0, options.map(o => o.item ? `    ${o.label}` : o.label).join("\n"), TextStyle.WINDOW, { maxLines: options.length });
-    this.optionSelectText.setName("text-option-select");
-    this.optionSelectText.setLineSpacing(12);
+    const displayWidth = Math.max(...this.optionSelectText.map(t => t.displayWidth));
     this.optionSelectContainer.add(this.optionSelectText);
-    this.optionSelectContainer.setPosition((this.scene.game.canvas.width / 6) - 1 - (this.config?.xOffset || 0), -48 + (this.config?.yOffset || 0));
+    this.optionSelectContainer.setPosition(this.scene.scaledCanvas.width - 1 - (this.config?.xOffset || 0), -48 + (this.config?.yOffset || 0));
 
-    this.optionSelectBg.width = Math.max(this.optionSelectText.displayWidth + 24, this.getWindowWidth());
-
-    if (this.config?.options.length > this.config?.maxOptions) {
-      this.optionSelectText.setText(this.getOptionsWithScroll().map(o => o.label).join("\n"));
-    }
-
+    this.optionSelectBg.width = Math.max(displayWidth + 24, this.getWindowWidth());
     this.optionSelectBg.height = this.getWindowHeight();
 
-    this.optionSelectText.setPositionRelative(this.optionSelectBg, 16, 9);
+    Phaser.Actions.Call(this.optionSelectText, (t: Phaser.GameObjects.Text) => t.setPositionRelative(this.optionSelectBg, 16, 9), this);
+    Phaser.Actions.SetY(this.optionSelectText, this.optionSelectText[0].y, 16);
 
+    if (this.config?.noBg) {
+      this.optionSelectBg.setVisible(false);
+    }
+
+    this.optionSelectIcons.forEach(i => i.destroy());
     options.forEach((option: OptionSelectItem, i: integer) => {
       if (option.item) {
-        const itemIcon = this.scene.add.sprite(0, 0, "items", option.item);
-        itemIcon.setScale(0.5);
-        this.optionSelectIcons.push(itemIcon);
-
-        this.optionSelectContainer.add(itemIcon);
-
-        itemIcon.setPositionRelative(this.optionSelectText, 6, 7 + 16 * i);
-
+        const iconGroup = new Phaser.GameObjects.Group(this.scene, [], {
+          classType: Phaser.GameObjects.Sprite,
+          createCallback: (sprite: Phaser.GameObjects.Sprite) => {
+            sprite.setName(`icon-${option.item}`);
+            sprite.setScale(0.6);
+            sprite.setPositionRelative(this.optionSelectText[0], 6, 5 + 16 * i);
+          }
+        });
+        const itemIcon = new Phaser.GameObjects.Sprite(this.scene, 0, 0, "items", option.item);
+        iconGroup.add(itemIcon);
         if (option.item === "candy") {
-          const itemOverlayIcon = this.scene.add.sprite(0, 0, "items", "candy_overlay");
-          itemOverlayIcon.setScale(0.5);
-          this.optionSelectIcons.push(itemOverlayIcon);
+          const itemOverlayIcon = new Phaser.GameObjects.Sprite(this.scene, 0, 0, "items", "candy_overlay");
+          iconGroup.add(itemOverlayIcon);
 
-          this.optionSelectContainer.add(itemOverlayIcon);
-
-          itemOverlayIcon.setPositionRelative(this.optionSelectText, 6, 7 + 16 * i);
-
-          itemIcon.setTint(argbFromRgba(Utils.rgbHexToRgba(option.itemArgs[0])));
-          itemOverlayIcon.setTint(argbFromRgba(Utils.rgbHexToRgba(option.itemArgs[1])));
+          itemIcon.setTint(Number(`0x${option.itemArgs[0]}`));
+          itemOverlayIcon.setTint(Number(`0x${option.itemArgs[1]}`));
         }
+        this.optionSelectIcons.push(...(iconGroup.children.getArray() as Phaser.GameObjects.Sprite[]));
+
+        this.optionSelectContainer.add(this.optionSelectIcons);
       }
     });
   }
@@ -143,7 +151,7 @@ export default abstract class AbstractOptionSelectUiHandler extends UiHandler {
 
     if (this.config.delay) {
       this.blockInput = true;
-      this.optionSelectText.setAlpha(0.5);
+      Phaser.Actions.SetAlpha(this.optionSelectText, 0.5);
       this.scene.time.delayedCall(Utils.fixedInt(this.config.delay), () => this.unblockInput());
     }
 
@@ -217,7 +225,7 @@ export default abstract class AbstractOptionSelectUiHandler extends UiHandler {
     }
 
     this.blockInput = false;
-    this.optionSelectText.setAlpha(1);
+    Phaser.Actions.SetAlpha(this.optionSelectText, 1);
   }
 
   getOptionsWithScroll(): OptionSelectItem[] {
@@ -291,6 +299,7 @@ export default abstract class AbstractOptionSelectUiHandler extends UiHandler {
 
     if (!this.cursorObj) {
       this.cursorObj = this.scene.add.image(0, 0, "cursor");
+      this.cursorObj.setName("cursor");
       this.optionSelectContainer.add(this.cursorObj);
     }
 
@@ -303,13 +312,14 @@ export default abstract class AbstractOptionSelectUiHandler extends UiHandler {
     super.clear();
     this.config = null;
     this.optionSelectContainer.setVisible(false);
+    this.optionSelectContainer.removeBetween(1);
+    this.optionSelectIcons.forEach(i => i.destroy());
+    this.optionSelectText.forEach(t => t.destroy());
     this.eraseCursor();
   }
 
   eraseCursor() {
-    if (this.cursorObj) {
-      this.cursorObj.destroy();
-    }
+    this.cursorObj?.destroy();
     this.cursorObj = null;
   }
 }

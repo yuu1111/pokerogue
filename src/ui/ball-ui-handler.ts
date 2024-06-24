@@ -23,6 +23,7 @@ export default class BallUiHandler extends UiHandler {
     const ui = this.getUi();
 
     this.pokeballSelectContainer = this.scene.add.container((this.scene.game.canvas.width / 6) - 115, -49);
+    this.pokeballSelectContainer.setName("pokeball-select");
     this.pokeballSelectContainer.setVisible(false);
     ui.add(this.pokeballSelectContainer);
 
@@ -37,12 +38,14 @@ export default class BallUiHandler extends UiHandler {
     }
     optionsTextContent += "Cancel";
     const optionsText = addTextObject(this.scene, 0, 0, optionsTextContent, TextStyle.WINDOW, { align: "right", maxLines: 6 });
+    optionsText.setName("pokeball-options");
     optionsText.setOrigin(0, 0);
     optionsText.setPositionRelative(this.pokeballSelectBg, 42, 9);
     optionsText.setLineSpacing(12);
     this.pokeballSelectContainer.add(optionsText);
 
     this.countsText = addTextObject(this.scene, 0, 0, "", TextStyle.WINDOW, { maxLines: 5 });
+    this.countsText.setName("pokeball-counts");
     this.countsText.setPositionRelative(this.pokeballSelectBg, 18, 9);
     this.countsText.setLineSpacing(12);
     this.pokeballSelectContainer.add(this.countsText);
@@ -111,6 +114,7 @@ export default class BallUiHandler extends UiHandler {
 
     if (!this.cursorObj) {
       this.cursorObj = this.scene.add.image(0, 0, "cursor");
+      this.cursorObj.setName("cursor");
       this.pokeballSelectContainer.add(this.cursorObj);
     }
 

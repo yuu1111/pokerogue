@@ -48,7 +48,7 @@ export const menu: SimpleTranslationEntries = {
   "wave": "웨이브",
   "loading": "로딩 중…",
   "loadingAsset": "Loading asset: {{assetName}}",
-  "playersOnline": "플레이어 온라인",
+  "playersOnline": "{{count}} 플레이어 온라인",
   "yes":"예",
   "no":"아니오",
   "disclaimer": "면책 조항",

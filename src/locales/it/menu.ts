@@ -43,7 +43,7 @@ export const menu: SimpleTranslationEntries = {
   "wave": "Wave",
   "loading": "Caricamento…",
   "loadingAsset": "Caricamento asset: {{assetName}}",
-  "playersOnline": "Giocatori online",
+  "playersOnline": "{{count}} Giocatori online",
   "evolving": "Cosa?\n{{pokemonName}} si sta evolvendo!",
   "stoppedEvolving": "{{pokemonName}} ha smesso di evolversi.",
   "pauseEvolutionsQuestion": "Vuoi sospendere le evoluzioni per {{pokemonName}}?\nPossono essere riattivate dalla schermata del party.",

@@ -77,28 +77,27 @@ export class TimedEventDisplay extends Phaser.GameObjects.Container {
   }
 
   setup() {
-    this.banner = new Phaser.GameObjects.Image(this.scene, 29, 64, this.event.bannerFilename);
+    this.banner = new Phaser.GameObjects.Image(this.scene, 0, 0, this.event.bannerFilename);
     this.banner.setName("img-event-banner");
     this.banner.setOrigin(0, 0);
-    this.banner.setScale(0.07);
+    this.banner.setScale(0.05);
     this.bannerShadow = new Phaser.GameObjects.Rectangle(
       this.scene,
       this.banner.x - 2,
       this.banner.y + 2,
-      this.banner.width,
-      this.banner.height,
+      this.banner.width * this.banner.scaleX,
+      this.banner.height * this.banner.scaleY,
       0x484848
     );
     this.bannerShadow.setName("rect-event-banner-shadow");
-    this.bannerShadow.setScale(0.07);
     this.bannerShadow.setAlpha(0.5);
     this.bannerShadow.setOrigin(0,0);
     this.eventTimerText = addTextObject(
       this.scene,
-      this.banner.x + 8,
-      this.banner.y + 100,
+      this.banner.x + 3,
+      this.banner.y - 10,
       this.timeToGo(this.event.endDate),
-      TextStyle.WINDOW
+      TextStyle.BATTLE_INFO
     );
     this.eventTimerText.setName("text-event-timer");
     this.eventTimerText.setScale(0.15);

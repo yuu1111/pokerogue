@@ -4,7 +4,7 @@ import { Mode } from "./ui";
 import * as Utils from "../utils";
 import { addWindow } from "./ui-theme";
 import MessageUiHandler from "./message-ui-handler";
-import { OptionSelectConfig, OptionSelectItem } from "./abstact-option-select-ui-handler";
+import { OptionSelectConfig } from "./abstact-option-select-ui-handler";
 import { Tutorial, handleTutorial } from "../tutorial";
 import { updateUserInfo } from "../account";
 import i18next from "i18next";
@@ -20,15 +20,9 @@ enum MenuOptions {
   EGG_LIST,
   EGG_GACHA,
   MANAGE_DATA,
-  COMMUNITY,
   SAVE_AND_QUIT,
   LOG_OUT
 }
-
-let wikiUrl = "https://wiki.pokerogue.net/start";
-const discordUrl = "https://discord.gg/uWpTfdKG49";
-const githubUrl = "https://github.com/pagefaultgames/pokerogue";
-const redditUrl = "https://www.reddit.com/r/pokerogue";
 
 export default class MenuUiHandler extends MessageUiHandler {
   private menuContainer: Phaser.GameObjects.Container;
@@ -44,7 +38,6 @@ export default class MenuUiHandler extends MessageUiHandler {
   protected menuOptions: MenuOptions[];
 
   protected manageDataConfig: OptionSelectConfig;
-  protected communityConfig: OptionSelectConfig;
 
   public bgmBar: BgmBar;
 
@@ -60,11 +53,6 @@ export default class MenuUiHandler extends MessageUiHandler {
 
   setup() {
     const ui = this.getUi();
-    // wiki url directs based on languges available on wiki
-    const lang = i18next.resolvedLanguage.substring(0,2);
-    if (["de", "fr", "ko", "zh"].includes(lang)) {
-      wikiUrl = `https://wiki.pokerogue.net/${lang}:start`;
-    }
 
     this.bgmBar = new BgmBar(this.scene);
     this.bgmBar.setup();
@@ -211,53 +199,6 @@ export default class MenuUiHandler extends MessageUiHandler {
       options: manageDataOptions
     };
 
-    const communityOptions: OptionSelectItem[] = [
-      {
-        label: "Wiki",
-        handler: () => {
-          window.open(wikiUrl, "_blank").focus();
-          return true;
-        },
-        keepOpen: true
-      },
-      {
-        label: "Discord",
-        handler: () => {
-          window.open(discordUrl, "_blank").focus();
-          return true;
-        },
-        keepOpen: true
-      },
-      {
-        label: "GitHub",
-        handler: () => {
-          window.open(githubUrl, "_blank").focus();
-          return true;
-        },
-        keepOpen: true
-      },
-      {
-        label: "Reddit",
-        handler: () => {
-          window.open(redditUrl, "_blank").focus();
-          return true;
-        },
-        keepOpen: true
-      },
-      {
-        label: i18next.t("menuUiHandler:cancel"),
-        handler: () => {
-          this.scene.ui.revertMode();
-          return true;
-        }
-      }
-    ];
-
-    this.communityConfig = {
-      xOffset: 98,
-      options: communityOptions
-    };
-
     this.setCursor(0);
 
     this.menuContainer.setVisible(false);
@@ -333,10 +274,6 @@ export default class MenuUiHandler extends MessageUiHandler {
         break;
       case MenuOptions.MANAGE_DATA:
         ui.setOverlayMode(Mode.MENU_OPTION_SELECT, this.manageDataConfig);
-        success = true;
-        break;
-      case MenuOptions.COMMUNITY:
-        ui.setOverlayMode(Mode.MENU_OPTION_SELECT, this.communityConfig);
         success = true;
         break;
       case MenuOptions.SAVE_AND_QUIT:

@@ -4,7 +4,6 @@ import UiHandler from "./ui-handler";
 import * as Utils from "../utils";
 import { PlayerPokemon } from "../field/pokemon";
 import { getStarterValueFriendshipCap, speciesStarters } from "../data/pokemon-species";
-import { argbFromRgba } from "@material/material-color-utilities";
 import { Type, getTypeRgb } from "../data/type";
 import { TextStyle, addBBCodeTextObject, addTextObject, getBBCodeFrag } from "./text";
 import Move, { MoveCategory } from "../data/move";
@@ -280,8 +279,8 @@ export default class SummaryUiHandler extends UiHandler {
     this.shinyOverlay.setVisible(this.pokemon.isShiny());
 
     const colorScheme = starterColors[this.pokemon.species.getRootSpeciesId()];
-    this.candyIcon.setTint(argbFromRgba(Utils.rgbHexToRgba(colorScheme[0])));
-    this.candyOverlay.setTint(argbFromRgba(Utils.rgbHexToRgba(colorScheme[1])));
+    this.candyIcon.setTint(Number(`0x${colorScheme[0]}`));
+    this.candyOverlay.setTint(Number(`0x${colorScheme[1]}`));
 
     this.numberText.setText(Utils.padInt(this.pokemon.species.speciesId, 4));
     this.numberText.setColor(this.getTextColor(!this.pokemon.isShiny() ? TextStyle.SUMMARY : TextStyle.SUMMARY_GOLD));

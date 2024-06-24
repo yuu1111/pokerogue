@@ -1,7 +1,6 @@
 import { BattleSceneEventType, CandyUpgradeNotificationChangedEvent } from "../events/battle-scene";
 import { pokemonPrevolutions } from "#app/data/pokemon-evolutions";
 import { Variant, getVariantTint, getVariantIcon } from "#app/data/variant";
-import { argbFromRgba } from "@material/material-color-utilities";
 import i18next from "i18next";
 import BBCodeText from "phaser3-rex-plugins/plugins/bbcodetext";
 import BattleScene, { starterColors } from "../battle-scene";
@@ -293,6 +292,7 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
     const textSettings = languageSettings[langSettingKey];
 
     this.starterSelectContainer = this.scene.add.container(0, -this.scene.game.canvas.height / 6);
+    this.starterSelectContainer.setName("starter-select");
     this.starterSelectContainer.setVisible(false);
     ui.add(this.starterSelectContainer);
 
@@ -689,6 +689,7 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
     const instructionTextSize = textSettings.instructionTextSize;
 
     this.instructionsContainer = this.scene.add.container(4, 156);
+    this.instructionsContainer.setName("instructions");
     this.instructionsContainer.setVisible(true);
     this.starterSelectContainer.add(this.instructionsContainer);
 
@@ -696,47 +697,51 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
     // creating new sprites since they will be added to the scene later
     this.shinyIconElement = new Phaser.GameObjects.Sprite(this.scene, this.instructionRowX, this.instructionRowY, "keyboard", "R.png");
     this.shinyIconElement.setName("sprite-shiny-icon-element");
-    this.shinyIconElement.setScale(0.675);
-    this.shinyIconElement.setOrigin(0.0, 0.0);
     this.shinyLabel = addTextObject(this.scene, this.instructionRowX + this.instructionRowTextOffset, this.instructionRowY, i18next.t("starterSelectUiHandler:cycleShiny"), TextStyle.PARTY, { fontSize: instructionTextSize });
     this.shinyLabel.setName("text-shiny-label");
 
     this.formIconElement = new Phaser.GameObjects.Sprite(this.scene, this.instructionRowX, this.instructionRowY, "keyboard", "F.png");
     this.formIconElement.setName("sprite-form-icon-element");
-    this.formIconElement.setScale(0.675);
-    this.formIconElement.setOrigin(0.0, 0.0);
     this.formLabel = addTextObject(this.scene, this.instructionRowX + this.instructionRowTextOffset, this.instructionRowY, i18next.t("starterSelectUiHandler:cycleForm"), TextStyle.PARTY, { fontSize: instructionTextSize });
     this.formLabel.setName("text-form-label");
 
     this.genderIconElement = new Phaser.GameObjects.Sprite(this.scene, this.instructionRowX, this.instructionRowY, "keyboard", "G.png");
     this.genderIconElement.setName("sprite-gender-icon-element");
-    this.genderIconElement.setScale(0.675);
-    this.genderIconElement.setOrigin(0.0, 0.0);
     this.genderLabel = addTextObject(this.scene, this.instructionRowX + this.instructionRowTextOffset, this.instructionRowY, i18next.t("starterSelectUiHandler:cycleGender"), TextStyle.PARTY, { fontSize: instructionTextSize });
     this.genderLabel.setName("text-gender-label");
 
     this.abilityIconElement = new Phaser.GameObjects.Sprite(this.scene, this.instructionRowX, this.instructionRowY, "keyboard", "E.png");
     this.abilityIconElement.setName("sprite-ability-icon-element");
-    this.abilityIconElement.setScale(0.675);
-    this.abilityIconElement.setOrigin(0.0, 0.0);
     this.abilityLabel = addTextObject(this.scene, this.instructionRowX + this.instructionRowTextOffset, this.instructionRowY, i18next.t("starterSelectUiHandler:cycleAbility"), TextStyle.PARTY, { fontSize: instructionTextSize });
     this.abilityLabel.setName("text-ability-label");
 
     this.natureIconElement = new Phaser.GameObjects.Sprite(this.scene, this.instructionRowX, this.instructionRowY, "keyboard", "N.png");
     this.natureIconElement.setName("sprite-nature-icon-element");
-    this.natureIconElement.setScale(0.675);
-    this.natureIconElement.setOrigin(0.0, 0.0);
     this.natureLabel = addTextObject(this.scene, this.instructionRowX + this.instructionRowTextOffset, this.instructionRowY, i18next.t("starterSelectUiHandler:cycleNature"), TextStyle.PARTY, { fontSize: instructionTextSize });
     this.natureLabel.setName("text-nature-label");
 
     this.variantIconElement = new Phaser.GameObjects.Sprite(this.scene, this.instructionRowX, this.instructionRowY, "keyboard", "V.png");
     this.variantIconElement.setName("sprite-variant-icon-element");
-    this.variantIconElement.setScale(0.675);
-    this.variantIconElement.setOrigin(0.0, 0.0);
     this.variantLabel = addTextObject(this.scene, this.instructionRowX + this.instructionRowTextOffset, this.instructionRowY, i18next.t("starterSelectUiHandler:cycleVariant"), TextStyle.PARTY, { fontSize: instructionTextSize });
     this.variantLabel.setName("text-variant-label");
 
-    this.hideInstructions();
+    this.instructionsContainer.add(
+      [
+        this.shinyLabel, this.shinyIconElement,
+        this.formLabel, this.formIconElement,
+        this.genderLabel, this.genderIconElement,
+        this.abilityLabel, this.abilityIconElement,
+        this.natureLabel, this.natureIconElement,
+        this.variantLabel, this.variantIconElement,
+      ]
+    );
+
+    this.instructionsContainer.getAll("type", "Sprite").forEach((s: Phaser.GameObjects.Sprite) => {
+      s.setScale(0.675);
+      s.setOrigin(0);
+    });
+
+    this.instructionsContainer.each(i => i.setVisible(false));
 
     this.starterSelectMessageBoxContainer = this.scene.add.container(0, this.scene.game.canvas.height / 6);
     this.starterSelectMessageBoxContainer.setVisible(false);
@@ -1445,17 +1450,6 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
                     ui.setMode(Mode.STARTER_SELECT);
                     this.scene.playSound("buy");
 
-                    // If the notification setting is set to 'On', update the candy upgrade display
-                    // if (this.scene.candyUpgradeNotification === 2) {
-                    //   if (this.isUpgradeIconEnabled() ) {
-                    //     this.setUpgradeIcon(this.cursor);
-                    //   }
-                    //   if (this.isUpgradeAnimationEnabled()) {
-                    //     const genSpecies = this.genSpecies[this.lastSpecies.generation - 1];
-                    //     this.setUpgradeAnimation(this.starterSelectGenIconContainers[this.lastSpecies.generation - 1].getAt(genSpecies.indexOf(this.lastSpecies)), this.lastSpecies, true);
-                    //   }
-                    // }
-
                     return true;
                   }
                   return false;
@@ -1753,8 +1747,7 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
   updateInstructions(): void {
     this.instructionRowX = 0;
     this.instructionRowY = 0;
-    this.hideInstructions();
-    this.instructionsContainer.removeAll();
+    this.instructionsContainer.each(i => i.setVisible(false));
     let gamepadType;
     if (this.scene.inputMethod === "gamepad") {
       gamepadType = this.scene.inputController.getConfig(this.scene.inputController.selectedDevice[Device.GAMEPAD]).padType;
@@ -1782,6 +1775,7 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
         this.updateButtonIcon(SettingKeyboard.Button_Cycle_Variant, gamepadType, this.variantIconElement, this.variantLabel);
       }
     }
+    this.instructionsContainer.setVisible(true);
   }
 
   getValueLimit(): integer {
@@ -1865,8 +1859,8 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
           }
 
           // Set the candy colors
-          this.candyUpgradeIcon[s].setTint(argbFromRgba(Utils.rgbHexToRgba(starterColors[speciesId][0])));
-          this.candyUpgradeOverlayIcon[s].setTint(argbFromRgba(Utils.rgbHexToRgba(starterColors[speciesId][1])));
+          this.candyUpgradeIcon[s].setTint(Number(`0x${starterColors[speciesId][0]}`));
+          this.candyUpgradeOverlayIcon[s].setTint(Number(`0x${starterColors[speciesId][1]}`));
 
           this.setUpgradeIcon(s);
         } else if (this.scene.candyUpgradeDisplay === 1) {
@@ -2083,9 +2077,9 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
         } else {
           this.pokemonCaughtHatchedContainer.setY(25);
           this.pokemonShinyIcon.setY(117);
-          this.pokemonCandyIcon.setTint(argbFromRgba(Utils.rgbHexToRgba(colorScheme[0])));
+          this.pokemonCandyIcon.setTint(Number(`0x${colorScheme[0]}`));
           this.pokemonCandyIcon.setVisible(true);
-          this.pokemonCandyOverlayIcon.setTint(argbFromRgba(Utils.rgbHexToRgba(colorScheme[1])));
+          this.pokemonCandyOverlayIcon.setTint(Number(`0x${colorScheme[1]}`));
           this.pokemonCandyOverlayIcon.setVisible(true);
           this.pokemonCandyDarknessOverlay.setVisible(true);
           this.pokemonCandyCountText.setText(`x${this.scene.gameData.starterData[species.speciesId].candyCount}`);
@@ -2640,27 +2634,12 @@ export default class StarterSelectUiHandler extends MessageUiHandler {
     super.clearText();
   }
 
-  hideInstructions(): void {
-    this.shinyIconElement.setVisible(false);
-    this.shinyLabel.setVisible(false);
-    this.formIconElement.setVisible(false);
-    this.formLabel.setVisible(false);
-    this.genderIconElement.setVisible(false);
-    this.genderLabel.setVisible(false);
-    this.abilityIconElement.setVisible(false);
-    this.abilityLabel.setVisible(false);
-    this.natureIconElement.setVisible(false);
-    this.natureLabel.setVisible(false);
-    this.variantIconElement.setVisible(false);
-    this.variantLabel.setVisible(false);
-  }
-
   clear(): void {
     super.clear();
 
     StarterPrefs.save(this.starterPreferences);
     this.cursor = -1;
-    this.hideInstructions();
+    this.instructionsContainer.setVisible(false);
     this.starterSelectContainer.setVisible(false);
     this.blockInput = false;
 

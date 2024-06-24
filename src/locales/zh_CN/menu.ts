@@ -48,7 +48,7 @@ export const menu: SimpleTranslationEntries = {
   "wave": "层数",
   "loading": "加载中...",
   "loadingAsset": "加载资源： {{assetName}}",
-  "playersOnline": "在线玩家",
+  "playersOnline": "{{count}} 在线玩家",
   "yes": "是",
   "no": "否",
   "disclaimer": "免责声明",

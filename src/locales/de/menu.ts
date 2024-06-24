@@ -48,7 +48,7 @@ export const menu: SimpleTranslationEntries = {
   "wave": "Welle",
   "loading": "Lade…",
   "loadingAsset": "Lade Asset: {{assetName}}",
-  "playersOnline": "Spieler Online",
+  "playersOnline": "{{count}} Spieler Online",
   "yes":"Ja",
   "no":"Nein",
   "disclaimer": "HAFTUNGSAUSSCHLUSS",

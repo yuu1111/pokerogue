@@ -48,7 +48,7 @@ export const menu: SimpleTranslationEntries = {
   "wave": "Wave",
   "loading": "加載中…",
   "loadingAsset": "Loading asset: {{assetName}}",
-  "playersOnline": "在線玩家",
+  "playersOnline": "{{count}} 在線玩家",
   "yes":"是",
   "no":"否",
   "disclaimer": "DISCLAIMER",

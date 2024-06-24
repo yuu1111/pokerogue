@@ -53,6 +53,10 @@ export class LoadingScene extends SceneBase {
         this.loadImage(`window_${w}${getWindowVariantSuffix(wv)}`, "ui/windows");
       }
     }
+    this.loadImage("discord", "ui");
+    this.loadImage("reddit", "ui");
+    this.loadImage("github", "ui");
+    this.loadImage("wiki", "ui");
     this.loadAtlas("namebox", "ui");
     this.loadImage("pbinfo_player", "ui");
     this.loadImage("pbinfo_player_stats", "ui");

@@ -191,104 +191,34 @@ export class TitlePhase extends Phase {
         const bgTexture = `${biomeKey}_bg`;
         this.scene.arenaBg.setTexture(bgTexture);
       }
-      this.showOptions();
     }).catch(err => {
       console.error(err);
-      this.showOptions();
     });
+    this.scene.ui.setMode(Mode.TITLE, this.showOptions());
   }
 
-  showOptions(): void {
+  showOptions(): OptionSelectConfig {
     const options: OptionSelectItem[] = [];
-    if (loggedInUser.lastSessionSlot > -1) {
-      options.push({
-        label: i18next.t("continue", null, { ns: "menu"}),
-        handler: () => {
-          this.loadSaveSlot(this.lastSessionData ? -1 : loggedInUser.lastSessionSlot);
-          return true;
-        }
-      });
-    }
+    // if (loggedInUser.lastSessionSlot > -1) {
+    //   options.push({
+    //     label: i18next.t("menu:continue"),
+    //     handler: () => {
+    //       this.loadSaveSlot(this.lastSessionData ? -1 : loggedInUser.lastSessionSlot);
+    //       return true;
+    //     }
+    //   });
+    // }
     options.push({
-      label: i18next.t("menu:newGame"),
-      handler: () => {
-        const setModeAndEnd = (gameMode: GameModes) => {
-          this.gameMode = gameMode;
-          this.scene.ui.setMode(Mode.MESSAGE);
-          this.scene.ui.clearText();
-          this.end();
-        };
-        if (this.scene.gameData.unlocks[Unlockables.ENDLESS_MODE]) {
-          const options: OptionSelectItem[] = [
-            {
-              label: GameMode.getModeName(GameModes.CLASSIC),
-              handler: () => {
-                setModeAndEnd(GameModes.CLASSIC);
-                return true;
-              }
-            },
-            {
-              label: GameMode.getModeName(GameModes.CHALLENGE),
-              handler: () => {
-                setModeAndEnd(GameModes.CHALLENGE);
-                return true;
-              }
-            },
-            {
-              label: GameMode.getModeName(GameModes.ENDLESS),
-              handler: () => {
-                setModeAndEnd(GameModes.ENDLESS);
-                return true;
-              }
-            }
-          ];
-          if (this.scene.gameData.unlocks[Unlockables.SPLICED_ENDLESS_MODE]) {
-            options.push({
-              label: GameMode.getModeName(GameModes.SPLICED_ENDLESS),
-              handler: () => {
-                setModeAndEnd(GameModes.SPLICED_ENDLESS);
-                return true;
-              }
-            });
-          }
-          options.push({
-            label: i18next.t("menu:cancel"),
-            handler: () => {
-              this.scene.clearPhaseQueue();
-              this.scene.pushPhase(new TitlePhase(this.scene));
-              super.end();
-              return true;
-            }
-          });
-          this.scene.ui.showText(i18next.t("menu:selectGameMode"), null, () => this.scene.ui.setOverlayMode(Mode.OPTION_SELECT, { options: options }));
-        } else {
-          this.gameMode = GameModes.CLASSIC;
-          this.scene.ui.setMode(Mode.MESSAGE);
-          this.scene.ui.clearText();
-          this.end();
-        }
-        return true;
-      }
+      label: i18next.t("menu:loadGame"),
+      handler: () => this.loadGameHandler(),
     },
     {
-      label: i18next.t("menu:loadGame"),
-      handler: () => {
-        this.scene.ui.setOverlayMode(Mode.SAVE_SLOT, SaveSlotUiMode.LOAD,
-          (slotId: integer) => {
-            if (slotId === -1) {
-              return this.showOptions();
-            }
-            this.loadSaveSlot(slotId);
-          });
-        return true;
-      }
+      label: i18next.t("menu:newGame"),
+      handler: () => this.newGameHandler(),
     },
     {
       label: i18next.t("menu:dailyRun"),
-      handler: () => {
-        this.initDailyRun();
-        return true;
-      },
+      handler: () => this.initDailyRun(),
       keepOpen: true
     },
     {
@@ -299,12 +229,65 @@ export class TitlePhase extends Phase {
       },
       keepOpen: true
     });
-    const config: OptionSelectConfig = {
+    return {
       options: options,
       noCancel: true,
-      yOffset: 47
+      xOffset: 220,
+      yOffset: 13,
+      noBg: true,
     };
-    this.scene.ui.setMode(Mode.TITLE, config);
+  }
+
+  newGameHandler(): boolean {
+    const setModeAndEnd = (gameMode: GameModes) => {
+      this.gameMode = gameMode;
+      this.scene.ui.setMode(Mode.MESSAGE);
+      this.scene.ui.clearText();
+      this.end();
+      return true;
+    };
+    const optionLabel = (gameMode: GameModes) => {
+      return {
+        label: GameMode.getModeName(gameMode),
+        handler: () => setModeAndEnd(gameMode)
+      };
+    };
+    if (this.scene.gameData.unlocks[Unlockables.ENDLESS_MODE]) {
+      const availableGameModes = [GameModes.CLASSIC, GameModes.CHALLENGE, GameModes.ENDLESS];
+      if (this.scene.gameData.unlocks[Unlockables.SPLICED_ENDLESS_MODE]) {
+        availableGameModes.push(GameModes.SPLICED_ENDLESS);
+      }
+      const options: OptionSelectItem[] = availableGameModes.map((gameMode: GameModes) => optionLabel(gameMode));
+      options.push({
+        label: i18next.t("menu:cancel"),
+        handler: () => {
+          this.scene.clearPhaseQueue();
+          this.scene.pushPhase(new TitlePhase(this.scene));
+          super.end();
+          return true;
+        }
+      });
+      const messageHandler = this.scene.ui.getMessageHandler();
+      messageHandler.bg.setVisible(true);
+      this.scene.ui.showText(i18next.t("menu:selectGameMode"), null, () => this.scene.ui.setOverlayMode(Mode.OPTION_SELECT, { options: options }));
+    } else {
+      this.gameMode = GameModes.CLASSIC;
+      this.scene.ui.setMode(Mode.MESSAGE);
+      this.scene.ui.clearText();
+      this.end();
+    }
+    return true;
+  }
+
+  loadGameHandler(): boolean {
+    this.scene.ui.setOverlayMode(Mode.SAVE_SLOT, SaveSlotUiMode.LOAD,
+      (slotId: integer) => {
+        if (slotId === -1) {
+          return this.scene.ui.setMode(Mode.TITLE, this.showOptions());
+        }
+        this.loadSaveSlot(slotId);
+      });
+    return true;
   }
 
   loadSaveSlot(slotId: integer): void {
@@ -323,7 +306,7 @@ export class TitlePhase extends Phase {
     });
   }
 
-  initDailyRun(): void {
+  initDailyRun(): boolean {
     this.scene.ui.setMode(Mode.SAVE_SLOT, SaveSlotUiMode.SAVE, (slotId: integer) => {
       this.scene.clearPhaseQueue();
       if (slotId === -1) {
@@ -390,6 +373,7 @@ export class TitlePhase extends Phase {
         generateDaily(btoa(new Date().toISOString().substring(0, 10)));
       }
     });
+    return true;
   }
 
   end(): void {

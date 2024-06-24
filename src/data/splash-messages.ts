@@ -5,8 +5,7 @@ export function getBattleCountSplashMessage(): string {
 }
 
 export function getSplashMessages(): string[] {
-  const splashMessages = Array(10).fill(getBattleCountSplashMessage());
-  splashMessages.push(...[
+  return [
     i18next.t("splashMessages:joinTheDiscord"),
     i18next.t("splashMessages:infiniteLevels"),
     i18next.t("splashMessages:everythingStacks"),
@@ -39,7 +38,5 @@ export function getSplashMessages(): string[] {
     i18next.t("splashMessages:alsoTryRadicalRed"),
     i18next.t("splashMessages:eeveeExpo"),
     i18next.t("splashMessages:ynoproject"),
-  ]);
-
-  return splashMessages;
+  ];
 }

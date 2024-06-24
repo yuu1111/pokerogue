@@ -136,8 +136,6 @@ export default class UI extends Phaser.GameObjects.Container {
   private tooltipTitle: Phaser.GameObjects.Text;
   private tooltipContent: Phaser.GameObjects.Text;
 
-  private overlayActive: boolean;
-
   constructor(scene: BattleScene) {
     super(scene, 0, scene.game.canvas.height / 6);
 
@@ -240,7 +238,7 @@ export default class UI extends Phaser.GameObjects.Container {
   }
 
   processInfoButton(pressed: boolean) {
-    if (this.overlayActive) {
+    if (this.overlay.visible) {
       return false;
     }
 
@@ -254,7 +252,7 @@ export default class UI extends Phaser.GameObjects.Container {
   }
 
   processInput(button: Button): boolean {
-    if (this.overlayActive) {
+    if (this.overlay.visible) {
       return false;
     }
 
@@ -400,10 +398,9 @@ export default class UI extends Phaser.GameObjects.Container {
 
   fadeOut(duration: integer): Promise<void> {
     return new Promise(resolve => {
-      if (this.overlayActive) {
+      if (this.overlay.visible) {
         return resolve();
       }
-      this.overlayActive = true;
       this.overlay.setAlpha(0);
       this.overlay.setVisible(true);
       this.scene.tweens.add({
@@ -418,7 +415,7 @@ export default class UI extends Phaser.GameObjects.Container {
 
   fadeIn(duration: integer): Promise<void> {
     return new Promise(resolve => {
-      if (!this.overlayActive) {
+      if (!this.overlay.visible) {
         return resolve();
       }
       this.scene.tweens.add({
@@ -431,7 +428,6 @@ export default class UI extends Phaser.GameObjects.Container {
           resolve();
         }
       });
-      this.overlayActive = false;
     });
   }
 
@@ -458,9 +454,11 @@ export default class UI extends Phaser.GameObjects.Container {
         }
         resolve();
       };
-      if (((!chainMode && ((transitionModes.indexOf(this.mode) > -1 || transitionModes.indexOf(mode) > -1)
-        && (noTransitionModes.indexOf(this.mode) === -1 && noTransitionModes.indexOf(mode) === -1)))
-        || (chainMode && noTransitionModes.indexOf(mode) === -1))) {
+      // isn't chain mode, is a transition mode and isnt a no transition mode
+      const condition1 = (!chainMode && ((transitionModes.indexOf(this.mode) > -1 || transitionModes.indexOf(mode) > -1) && (noTransitionModes.indexOf(this.mode) === -1 && noTransitionModes.indexOf(mode) === -1)));
+      // is chain mode and isnt a no transition mode
+      const condition2 = chainMode && noTransitionModes.indexOf(mode) === -1;
+      if (condition1 || condition2) {
         this.fadeOut(250).then(() => {
           this.scene.time.delayedCall(100, () => {
             doSetMode();
@@ -477,6 +475,15 @@ export default class UI extends Phaser.GameObjects.Container {
     return this.mode;
   }
 
+  /**
+   * Set Mode
+   * @param mode UI Mode to set
+   * @param args Configuration for that mode
+   * Calls `setModeInternal` with the following settings:
+   * - clear: true
+   * - forceTransition: false
+   * - chainMode: false
+   */
   setMode(mode: Mode, ...args: any[]): Promise<void> {
     return this.setModeInternal(mode, true, false, false, args);
   }

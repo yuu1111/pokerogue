@@ -48,7 +48,7 @@ export const menu: SimpleTranslationEntries = {
   "wave": "Onda",
   "loading": "Carregando…",
   "loadingAsset": "Carregando recurso: {{assetName}}",
-  "playersOnline": "Jogadores Ativos",
+  "playersOnline": "{{count}} Jogadores Ativos",
   "yes": "Sim",
   "no": "Não",
   "disclaimer": "AVISO",

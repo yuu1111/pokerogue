@@ -10,6 +10,7 @@ import { MoveCategory } from "#app/data/move.js";
 import i18next from "i18next";
 import {Button} from "#enums/buttons";
 import Pokemon, { PokemonMove } from "#app/field/pokemon.js";
+import BattleMessageUiHandler from "#app/ui/battle-message-ui-handler.js";
 
 export default class FightUiHandler extends UiHandler {
   private movesContainer: Phaser.GameObjects.Container;
@@ -23,6 +24,7 @@ export default class FightUiHandler extends UiHandler {
   private accuracyText: Phaser.GameObjects.Text;
   private cursorObj: Phaser.GameObjects.Image;
   private moveCategoryIcon: Phaser.GameObjects.Sprite;
+  private messageHandler: BattleMessageUiHandler;
 
   protected fieldIndex: integer = 0;
   protected cursor2: integer = 0;
@@ -82,6 +84,7 @@ export default class FightUiHandler extends UiHandler {
     this.accuracyText.setOrigin(1, 0.5);
     this.accuracyText.setVisible(false);
     this.moveInfoContainer.add(this.accuracyText);
+    this.messageHandler = this.getUi().getMessageHandler();
   }
 
   show(args: any[]): boolean {
@@ -89,10 +92,10 @@ export default class FightUiHandler extends UiHandler {
 
     this.fieldIndex = args.length ? args[0] as integer : 0;
 
-    const messageHandler = this.getUi().getMessageHandler();
-    messageHandler.bg.setVisible(false);
-    messageHandler.commandWindow.setVisible(false);
-    messageHandler.movesWindowContainer.setVisible(true);
+    this.messageHandler.bg.setVisible(false);
+    this.messageHandler.commandWindow.setVisible(false);
+    this.messageHandler.movesWindowContainer.setVisible(true);
+
     this.setCursor(this.getCursor());
     this.displayMoves();
 
@@ -210,14 +213,7 @@ export default class FightUiHandler extends UiHandler {
       });
     }
 
-    this.typeIcon.setVisible(hasMove);
-    this.ppLabel.setVisible(hasMove);
-    this.ppText.setVisible(hasMove);
-    this.powerLabel.setVisible(hasMove);
-    this.powerText.setVisible(hasMove);
-    this.accuracyLabel.setVisible(hasMove);
-    this.accuracyText.setVisible(hasMove);
-    this.moveCategoryIcon.setVisible(hasMove);
+    this.moveInfoContainer.setVisible(hasMove);
 
     this.cursorObj.setPosition(13 + (cursor % 2 === 1 ? 100 : 0), -31 + (cursor >= 2 ? 15 : 0));
 
@@ -282,17 +278,9 @@ export default class FightUiHandler extends UiHandler {
 
   clear() {
     super.clear();
-    const messageHandler = this.getUi().getMessageHandler();
     this.clearMoves();
-    this.typeIcon.setVisible(false);
-    this.ppLabel.setVisible(false);
-    this.ppText.setVisible(false);
-    this.powerLabel.setVisible(false);
-    this.powerText.setVisible(false);
-    this.accuracyLabel.setVisible(false);
-    this.accuracyText.setVisible(false);
-    this.moveCategoryIcon.setVisible(false);
-    messageHandler.bg.setVisible(true);
+    this.moveInfoContainer.setVisible(false);
+    this.messageHandler.bg.setVisible(true);
     this.eraseCursor();
   }
 
