@@ -16,6 +16,7 @@ export interface OptionSelectConfig {
   supportHover?: boolean;
   noBg?: boolean;
   textStyle?: TextStyle;
+  extraStyleOptions?: Phaser.Types.GameObjects.Text.TextStyle;
 }
 
 export interface OptionSelectItem {
@@ -81,12 +82,18 @@ export default abstract class AbstractOptionSelectUiHandler extends UiHandler {
       Phaser.Actions.Call(this.optionSelectText, (text) => text.destroy(), this);
     }
     const optionText = this.config?.options.length > this.config?.maxOptions ? this.getOptionsWithScroll() : options;
+    const optionTextStyle = {
+      maxLines: options.length, lineSpacing: 12
+    };
+    if (this.config.extraStyleOptions) {
+      Object.assign(optionTextStyle, this.config.extraStyleOptions);
+    }
     this.optionSelectText = [];
     this.optionSelectText = optionText.map(o => {
       const ret = addTextObject(this.scene, 0, 0,
         o.item ? `    ${o.label}` : o.label,
         ( this.config?.textStyle ?? TextStyle.WINDOW),
-        { maxLines: options.length, lineSpacing: 12 }
+        optionTextStyle
       );
       ret.setName(`text-${o.label}`);
       return ret;

@@ -6,15 +6,24 @@ import { TextStyle, addTextObject } from "./text";
 import { getSplashMessages } from "../data/splash-messages";
 import i18next from "i18next";
 import { TimedEventDisplay } from "#app/timed-event-manager.js";
+import { Color } from "#app/enums/color.js";
+import { PlayerGender } from "#app/enums/player-gender.js";
+import { SpeechBubble } from "#app/ui/components/speech-bubble.js";
 
 export default class TitleUiHandler extends OptionSelectUiHandler {
   private titleContainer: Phaser.GameObjects.Container;
   private logo: Phaser.GameObjects.Image;
   private playerCountLabel: Phaser.GameObjects.Text;
+  private playerCountWidth: number;
   private splashMessage: string;
   private splashMessageText: Phaser.GameObjects.Text;
   private eventDisplay: TimedEventDisplay;
   private iconContainer: TitleIcons;
+  private menuOverlay: Phaser.GameObjects.Rectangle;
+  private rivalSprite: Phaser.GameObjects.Sprite;
+  private spriteShadow: Phaser.GameObjects.Ellipse;
+  private bubble: SpeechBubble;
+  private rivalText: Phaser.GameObjects.Text;
 
   private titleStatsTimer: NodeJS.Timeout;
 
@@ -27,30 +36,93 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
 
     const ui = this.getUi();
 
+    const overlayColor = this.scene.uiTheme ? Color.OFF_WHITE : Color.DARK_GREY;
+
     this.titleContainer = this.scene.add.container(0, -(this.scene.game.canvas.height / 6));
     this.titleContainer.setName("title");
     this.titleContainer.setAlpha(0);
     ui.add(this.titleContainer);
 
-    this.logo = this.scene.add.image((this.scene.scaledCanvas.width / 4) + 3, 8, "logo");
+    this.logo = this.scene.add.image(
+      (this.scene.scaledCanvas.width / 4) + 3,
+      8,
+      "logo"
+    );
     this.logo.setName("logo");
     this.logo.setOrigin(0.5, 0);
     this.titleContainer.add(this.logo);
 
-    this.iconContainer = new TitleIcons(this.scene, 15, this.scene.scaledCanvas.height - 15);
+    this.menuOverlay = this.scene.add.rectangle(
+      8, 59,
+      92, 71,
+      Number(`0x${overlayColor.slice(1)}`),
+      0.5
+    );
+    this.menuOverlay.setName("title-options-bg");
+    this.menuOverlay.setOrigin(0);
+    this.menuOverlay.setBlendMode(Phaser.BlendModes.OVERLAY);
+    this.titleContainer.add(this.menuOverlay);
+
+    this.iconContainer = new TitleIcons(
+      this.scene,
+      15, this.scene.scaledCanvas.height - 15
+    );
     this.iconContainer.setup();
     this.titleContainer.add(this.iconContainer);
 
+
+    this.rivalSprite = new Phaser.GameObjects.Sprite(
+      this.scene,
+      176, 127,
+      `${this.scene.gameData.gender === PlayerGender.MALE ? "ivy" : "finn" }-sprite`
+    );
+    this.rivalSprite.setName("rival");
+
+    this.spriteShadow = new Phaser.GameObjects.Ellipse(
+      this.scene,
+      this.rivalSprite.x, (this.rivalSprite.y + this.rivalSprite.height / 2) - 1,
+      this.rivalSprite.width / 2, this.rivalSprite.height / 10,
+      Number(`0x${Color.DARK_GREY}`), 0.5
+    );
+    this.spriteShadow.setName("sprite-shadow");
+    this.spriteShadow.setBlendMode(Phaser.BlendModes.OVERLAY);
+    this.titleContainer.add([this.rivalSprite, this.spriteShadow]);
+
     if (this.scene.eventManager.isEventActive()) {
-      this.eventDisplay = new TimedEventDisplay(this.scene, 170, 66, this.scene.eventManager.activeEvent());
+      this.eventDisplay = new TimedEventDisplay(this.scene, 189, 49, this.scene.eventManager.activeEvent());
       this.eventDisplay.setup();
       this.titleContainer.add(this.eventDisplay);
+    } else {
+      this.rivalText = addTextObject(
+        this.scene,
+        190,
+        98,
+        "Check the Discord for the latest changes!",
+        TextStyle.WINDOW_ALT,
+        { fontSize: 49 }
+      );
+      this.rivalText.setOrigin(0);
+      this.rivalText.setName("text-rival-changelog");
     }
 
-    this.playerCountLabel = addTextObject(this.scene, 8, this.scene.scaledCanvas.height - 132, i18next.t("menu:playersOnline", { count: 0 }), TextStyle.MESSAGE, { fontSize: "54px" });
-    console.log(this.playerCountLabel);
+    this.bubble = new SpeechBubble(this.scene, 244, 102, (this.eventDisplay?.getByName("text-event-timer") ?? this.rivalText) as Phaser.GameObjects.Text);
+    this.titleContainer.add(this.bubble);
+
+    this.playerCountLabel = addTextObject(
+      this.scene,
+      this.scene.scaledCanvas.width - 60,
+      this.scene.scaledCanvas.height - 20,
+      i18next.t("menu:playersOnline", { count: 0 }),
+      TextStyle.MESSAGE,
+      {
+        fontSize: "60px",
+        align: "right",
+      }
+    );
+
     this.playerCountLabel.setName("player-count");
     this.playerCountLabel.setOrigin(0);
+    this.playerCountWidth = this.playerCountLabel.width;
     this.titleContainer.add(this.playerCountLabel);
 
     this.splashMessageText = addTextObject(this.scene, this.logo.x + 64, this.logo.y + this.logo.displayHeight - 8, "", TextStyle.MONEY, { fontSize: "54px" });
@@ -75,6 +147,8 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
       .then(request => request.json())
       .then((stats: { playerCount: number, battleCount: number }) => {
         this.playerCountLabel.setText(i18next.t("menu:playersOnline", { count: stats.playerCount }));
+        this.playerCountLabel.setX(this.playerCountLabel.x - ((this.playerCountLabel.width - this.playerCountWidth) / 6));
+        this.playerCountWidth = this.playerCountLabel.width;
       })
       .catch(err => {
         console.error("Failed to fetch title stats:\n", err);
@@ -86,7 +160,7 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
 
     if (ret) {
       this.splashMessage = Utils.randItem(getSplashMessages());
-      this.splashMessageText.setText(this.splashMessage.replace("{COUNT}", "?"));
+      this.splashMessageText.setText(this.splashMessage);
 
       const ui = this.getUi();
 
@@ -94,7 +168,9 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
         this.eventDisplay.show();
       }
 
+      this.bubble.setVisible(true);
       this.iconContainer.setVisible(true);
+      this.update();
 
       this.updateTitleStats();
 
@@ -113,6 +189,12 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
     return ret;
   }
 
+  update() {
+    const playerMale = this.scene.gameData.gender === PlayerGender.MALE;
+    this.rivalSprite.setTexture(`${playerMale ? "ivy" : "finn" }-sprite`);
+    this.spriteShadow.setY((this.rivalSprite.y + this.rivalSprite.height / 2) - (playerMale ? 2 : 3));
+  }
+
   clear(): void {
     super.clear();
 
@@ -120,6 +202,7 @@ export default class TitleUiHandler extends OptionSelectUiHandler {
 
     this.eventDisplay?.setVisible(false);
     this.iconContainer?.setVisible(false);
+    this.bubble.setVisible(false);
 
     clearInterval(this.titleStatsTimer);
     this.titleStatsTimer = null;
@@ -192,9 +275,11 @@ class Icon extends Phaser.GameObjects.Sprite {
     this.setAlpha(this.DEFAULT_ALPHA);
     this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => {
       this.setAlpha(1);
+      scene.ui.showTooltip("", texture, true);
     });
     this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_OUT, () => {
       this.setAlpha(this.DEFAULT_ALPHA);
+      scene.ui.hideTooltip();
     });
     this.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
       window.open(link, "_blank").focus();

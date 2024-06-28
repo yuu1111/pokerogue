@@ -3,6 +3,7 @@ import { Mode } from "../ui";
 "#app/inputs-controller.js";
 import AbstractSettingsUiHandler from "./abstract-settings-ui-handler";
 import { Setting, SettingKeys, SettingType } from "#app/system/settings/settings";
+import TitleUiHandler from "#app/ui/title-ui-handler.js";
 
 export default class SettingsDisplayUiHandler extends AbstractSettingsUiHandler {
   /**
@@ -15,6 +16,7 @@ export default class SettingsDisplayUiHandler extends AbstractSettingsUiHandler 
     super(scene, mode);
     this.title = "Display";
     this.settings = Setting.filter(s => s.type === SettingType.DISPLAY);
+    this.actionButtons = false;
 
     /**
      * Update to current language from default value.
@@ -89,5 +91,10 @@ export default class SettingsDisplayUiHandler extends AbstractSettingsUiHandler 
     }
 
     this.localStorageKey = "settings";
+  }
+
+  clear() {
+    super.clear();
+    (this.getUi().handlers[Mode.TITLE] as TitleUiHandler).update();
   }
 }

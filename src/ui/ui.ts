@@ -220,6 +220,7 @@ export default class UI extends Phaser.GameObjects.Container {
 
     this.tooltipContent = addTextObject(this.scene, 6, 16, "", TextStyle.TOOLTIP_CONTENT);
     this.tooltipContent.setName("text-tooltip-content");
+    this.tooltipContent.setAlign("center");
     this.tooltipContent.setWordWrapWidth(696);
 
     this.tooltipContainer.add(this.tooltipBg);
@@ -365,8 +366,13 @@ export default class UI extends Phaser.GameObjects.Container {
 
   update(): void {
     if (this.tooltipContainer.visible) {
-      const reverse = this.scene.game.input.mousePointer.x >= this.scene.game.canvas.width - this.tooltipBg.width * 6 - 12;
-      this.tooltipContainer.setPosition(!reverse ? this.scene.game.input.mousePointer.x / 6 + 2 : this.scene.game.input.mousePointer.x / 6 - this.tooltipBg.width - 2, this.scene.game.input.mousePointer.y / 6 + 2);
+      const reverseX = this.scene.game.input.mousePointer.x >= this.scene.game.canvas.width - this.tooltipBg.width * 6 - 12;
+      const reverseY = this.scene.game.input.mousePointer.y >= this.scene.game.canvas.height - this.tooltipBg.height * 6 - 12;
+      this.tooltipContainer.setPosition(
+        !reverseX ? this.scene.game.input.mousePointer.x / 6 + 2 : this.scene.game.input.mousePointer.x / 6 - this.tooltipBg.width - 2,
+        !reverseY ? this.scene.game.input.mousePointer.y / 6 + 2 : this.scene.game.input.mousePointer.y / 6 - this.tooltipBg.height - 2
+      );
+      this.tooltipTitle.setX(this.tooltipBg.width / 2);
     }
   }
 

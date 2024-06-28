@@ -15,5 +15,6 @@ export default class SettingsUiHandler extends AbstractSettingsUiHandler {
     this.title = "General";
     this.settings = Setting.filter(s => s.type === SettingType.GENERAL);
     this.localStorageKey = "settings";
+    this.actionButtons = false;
   }
 }

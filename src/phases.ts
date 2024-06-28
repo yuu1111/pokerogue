@@ -199,15 +199,6 @@ export class TitlePhase extends Phase {
 
   showOptions(): OptionSelectConfig {
     const options: OptionSelectItem[] = [];
-    // if (loggedInUser.lastSessionSlot > -1) {
-    //   options.push({
-    //     label: i18next.t("menu:continue"),
-    //     handler: () => {
-    //       this.loadSaveSlot(this.lastSessionData ? -1 : loggedInUser.lastSessionSlot);
-    //       return true;
-    //     }
-    //   });
-    // }
     options.push({
       label: i18next.t("menu:loadGame"),
       handler: () => this.loadGameHandler(),
@@ -232,9 +223,9 @@ export class TitlePhase extends Phase {
     return {
       options: options,
       noCancel: true,
-      xOffset: 220,
-      yOffset: 13,
-      noBg: true,
+      xOffset: 216,
+      yOffset: 1,
+      noBg: true
     };
   }
 
@@ -389,7 +380,7 @@ export class TitlePhase extends Phase {
     } else {
       this.scene.playBgm();
     }
-
+    this.scene.ui.getMessageHandler().bg.setVisible(true);
     this.scene.pushPhase(new EncounterPhase(this.scene, this.loaded));
 
     if (this.loaded) {

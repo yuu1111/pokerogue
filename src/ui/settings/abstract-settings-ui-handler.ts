@@ -27,10 +27,12 @@ export default class AbstractSettingsUiHandler extends UiHandler {
 
   private settingLabels: Phaser.GameObjects.Text[];
   private optionValueLabels: Phaser.GameObjects.Text[][];
+  private reloadRequiredText: Phaser.GameObjects.Text;
 
   protected navigationIcons: InputsIcons;
 
   private cursorObj: Phaser.GameObjects.NineSlice;
+  private actionGroup: Phaser.GameObjects.Group;
 
   private reloadSettings: Array<Setting>;
   private reloadRequired: boolean;
@@ -39,6 +41,7 @@ export default class AbstractSettingsUiHandler extends UiHandler {
   protected title: string;
   protected settings: Array<Setting>;
   protected localStorageKey: string;
+  protected actionButtons: boolean = true;
 
   constructor(scene: BattleScene, mode?: Mode) {
     super(scene, mode);
@@ -53,6 +56,8 @@ export default class AbstractSettingsUiHandler extends UiHandler {
   setup() {
     const ui = this.getUi();
 
+    this.actionGroup = new Phaser.GameObjects.Group(this.scene);
+
     this.settingsContainer = this.scene.add.container(1, -(this.scene.game.canvas.height / 6) + 1);
     this.settingsContainer.setName(`settings-${this.title}`);
     this.settingsContainer.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.scene.game.canvas.width / 6, this.scene.game.canvas.height / 6 - 20), Phaser.Geom.Rectangle.Contains);
@@ -61,7 +66,12 @@ export default class AbstractSettingsUiHandler extends UiHandler {
 
     this.navigationContainer = new NavigationMenu(this.scene, 0, 0);
 
-    this.optionsBg = addWindow(this.scene, 0, this.navigationContainer.height, (this.scene.game.canvas.width / 6) - 2, (this.scene.game.canvas.height / 6) - 16 - this.navigationContainer.height - 2);
+    this.optionsBg = addWindow(
+      this.scene, 0,
+      this.navigationContainer.height - 1,
+      (this.scene.game.canvas.width / 6) - 2,
+      (this.scene.game.canvas.height / 6) - 16 - this.navigationContainer.height - 2
+    );
     this.optionsBg.setName("window-options-bg");
     this.optionsBg.setOrigin(0, 0);
 
@@ -69,22 +79,34 @@ export default class AbstractSettingsUiHandler extends UiHandler {
     actionsBg.setOrigin(0, 0);
 
     const iconAction = this.scene.add.sprite(0, 0, "keyboard");
+    iconAction.setName("icon-action");
     iconAction.setOrigin(0, -0.1);
     iconAction.setPositionRelative(actionsBg, this.navigationContainer.width - 32, 4);
     this.navigationIcons["BUTTON_ACTION"] = iconAction;
 
     const actionText = addTextObject(this.scene, 0, 0, i18next.t("settings:action"), TextStyle.SETTINGS_LABEL);
+    actionText.setName("text-action");
     actionText.setOrigin(0, 0.15);
     actionText.setPositionRelative(iconAction, -actionText.width/6-2, 0);
 
     const iconCancel = this.scene.add.sprite(0, 0, "keyboard");
+    iconCancel.setName("icon-cancel");
     iconCancel.setOrigin(0, -0.1);
     iconCancel.setPositionRelative(actionsBg, this.navigationContainer.width - 100, 4);
     this.navigationIcons["BUTTON_CANCEL"] = iconCancel;
 
     const cancelText = addTextObject(this.scene, 0, 0, i18next.t("settings:back"), TextStyle.SETTINGS_LABEL);
+    cancelText.setName("text-cancel");
     cancelText.setOrigin(0, 0.15);
     cancelText.setPositionRelative(iconCancel, -cancelText.width/6-2, 0);
+
+    this.reloadRequiredText = addTextObject(
+      this.scene,
+      8, 159,
+      `* ${i18next.t("settings:requireReload")}`,
+      TextStyle.SETTINGS_LABEL
+    );
+    this.reloadRequiredText.setName("reload-required");
 
     this.optionsContainer = this.scene.add.container(0, 0);
 
@@ -97,7 +119,7 @@ export default class AbstractSettingsUiHandler extends UiHandler {
       .forEach((setting, s) => {
         let settingName = setting.label;
         if (setting?.requireReload) {
-          settingName += ` (${i18next.t("settings:requireReload")})`;
+          settingName += " *";
         }
 
         this.settingLabels[s] = addTextObject(this.scene, 8, 28 + s * 16, settingName, TextStyle.SETTINGS_LABEL);
@@ -138,6 +160,11 @@ export default class AbstractSettingsUiHandler extends UiHandler {
     this.settingsContainer.add(iconCancel);
     this.settingsContainer.add(actionText);
     this.settingsContainer.add(cancelText);
+    this.settingsContainer.add(this.reloadRequiredText);
+
+    this.actionGroup.addMultiple([
+      iconAction, iconCancel, actionText, cancelText
+    ]);
 
     ui.add(this.settingsContainer);
 
@@ -185,6 +212,8 @@ export default class AbstractSettingsUiHandler extends UiHandler {
     this.settings.forEach((setting, s) => this.setOptionCursor(s, settings.hasOwnProperty(setting.key) ? settings[setting.key] : this.settings[s].default));
 
     this.settingsContainer.setVisible(true);
+    Phaser.Actions.SetVisible(this.actionGroup.getChildren(), this.actionButtons);
+    this.reloadRequiredText.setVisible(!this.actionButtons);
     this.setCursor(0);
 
     this.getUi().moveTo(this.settingsContainer, this.getUi().length - 1);

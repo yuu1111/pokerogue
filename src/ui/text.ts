@@ -122,8 +122,8 @@ function getTextStyleOptions(style: TextStyle, uiTheme: UiTheme, extraStyleOptio
   case TextStyle.MONEY:
   case TextStyle.TOOLTIP_TITLE:
     styleOptions.fontSize = defaultFontSize - 24;
-    shadowXpos = 3.5;
-    shadowYpos = 3.5;
+    shadowXpos = 3;
+    shadowYpos = 3;
     break;
   case TextStyle.PARTY:
   case TextStyle.PARTY_RED:
@@ -146,8 +146,11 @@ function getTextStyleOptions(style: TextStyle, uiTheme: UiTheme, extraStyleOptio
 
   if (extraStyleOptions) {
     if (extraStyleOptions.fontSize) {
-      const sizeRatio = parseInt(extraStyleOptions.fontSize.toString().slice(0, -2)) / parseInt(styleOptions.fontSize.toString().slice(0, -2));
+      const currentSize = typeof styleOptions.fontSize === "string" ? Number(styleOptions.fontSize.slice(0, -2)) : styleOptions.fontSize;
+      const newSize = typeof extraStyleOptions.fontSize === "string" ? Number(extraStyleOptions.fontSize.slice(0, -2)) : extraStyleOptions.fontSize;
+      const sizeRatio = newSize / currentSize;
       shadowXpos *= sizeRatio;
+      shadowYpos *= sizeRatio;
     }
     styleOptions = Object.assign(styleOptions, extraStyleOptions);
   }

@@ -40,6 +40,8 @@ export class LoadingScene extends SceneBase {
     this.loadImage("loading_bg", "arenas");
     this.loadImage("logo", "");
     this.loadImage("pride-update", "events");
+    this.loadImage("ivy-sprite", "");
+    this.loadImage("finn-sprite", "");
 
     // Load menu images
     this.loadAtlas("bg", "ui");
@@ -53,6 +55,7 @@ export class LoadingScene extends SceneBase {
         this.loadImage(`window_${w}${getWindowVariantSuffix(wv)}`, "ui/windows");
       }
     }
+    this.loadImage("window_speech", "");
     this.loadImage("discord", "ui");
     this.loadImage("reddit", "ui");
     this.loadImage("github", "ui");
