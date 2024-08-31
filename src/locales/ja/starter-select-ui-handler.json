@@ -18,6 +18,7 @@
   "eggMoves": "タマゴ技",
   "start": "始める",
   "addToParty": "手持ちに入れる",
+  "removeFromParty": "手持ちから外す",
   "toggleIVs": "個体値を表示",
   "manageMoves": "技を並び替える",
   "manageNature": "性格を変える",
